@@ -20,6 +20,7 @@
     "firebase": "^9.19.1",
     "google-auth-library": "^8.7.0",
     "googleapis": "^114.0.0",
+    "i": "^0.3.7",
     "jsonwebtoken": "^9.0.0",
     "jwt-decode": "^3.1.2",
     "mongoose": "^7.0.3",
