@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 import dotenv from 'dotenv';
@@ -36,6 +37,34 @@ export const signup = async (req, res) => {
 
         const token = jwt.sign({ email: result.email, id: result._id }, process.env.secretToken, { expiresIn: "7d"});
         res.status(200).json({ result: result, token });
+    } catch (error) {
+        res.status(500).json({ message: 'something went wrong in server'});
+    }
+}
+
+export const updateuser = async (req, res) => {
+    const { id: _id } = req.params;
+    if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No User with that id');
+
+    const { email, oldPassword, newPassword, firstname, lastname, oldEmail } = req.body;
+    try {
+        const existingUser = await User.findOne({ _id });
+        if(!existingUser) return res.status(404).json({ message: 'user do not exists.'});
+        else {
+            const existEmail = await User.findOne({ email });
+            if(existEmail) return res.status(404).json({ message: 'Email already exists.'});
+            else {
+                const isPassowrdCorrect = await bcrypt.compare(oldPassword, existingUser.password);
+                if(!isPassowrdCorrect) return res.status(400).json({ message: 'invalid credentials.'});
+                console.log(isPassowrdCorrect);
+                
+                const hashPassowrd = await bcrypt.hash(newPassword, 12);
+                const updatedUser = await User.findByIdAndUpdate(_id,{ email, password: hashPassowrd, name: `${firstname} ${lastname}`, _id}, { new: true});
+                
+                const token = jwt.sign({ email: updatedUser.email, id: updatedUser._id }, process.env.secretToken, { expiresIn: "7d"});
+                res.status(200).json({ result: updatedUser, token });
+            } 
+        }
     } catch (error) {
         res.status(500).json({ message: 'something went wrong in server'});
     }
