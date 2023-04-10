@@ -52,11 +52,11 @@ export const updateuser = async (req, res) => {
         if(!existingUser) return res.status(404).json({ message: 'user do not exists.'});
         else {
             const existEmail = await User.findOne({ email });
-            if(existEmail) return res.status(404).json({ message: 'Email already exists.'});
+            const oldEmail = existingUser.email;
+            if(existEmail && email !== oldEmail ) return res.status(404).json({ message: 'Email already exists.'});
             else {
                 const isPassowrdCorrect = await bcrypt.compare(oldPassword, existingUser.password);
                 if(!isPassowrdCorrect) return res.status(400).json({ message: 'invalid credentials.'});
-                
                 const hashPassowrd = await bcrypt.hash(newPassword, 12);
                 const updatedUser = await User.findByIdAndUpdate(_id,{ email, password: hashPassowrd, name: `${firstname} ${lastname}`, _id}, { new: true});
                 
