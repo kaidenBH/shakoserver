@@ -57,7 +57,8 @@ export const updateuser = async (req, res) => {
             else {
                 const isPassowrdCorrect = await bcrypt.compare(oldPassword, existingUser.password);
                 if(!isPassowrdCorrect) return res.status(400).json({ message: 'invalid credentials.'});
-                const hashPassowrd = await bcrypt.hash(newPassword, 12);
+                
+                const hashPassowrd = await bcrypt.hash(newPassword ? newPassword : oldPassword, 12);
                 const updatedUser = await User.findByIdAndUpdate(_id,{ email, password: hashPassowrd, name: `${firstname} ${lastname}`, _id}, { new: true});
                 
                 const token = jwt.sign({ email: updatedUser.email, id: updatedUser._id }, process.env.secretToken, { expiresIn: "7d"});
