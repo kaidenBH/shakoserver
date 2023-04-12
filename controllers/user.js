@@ -14,7 +14,7 @@ export const signin = async (req, res) => {
         if(!existingUser) return res.status(404).json({ message: 'User does not exists.'});
         
         const isPassowrdCorrect = await bcrypt.compare(password, existingUser.password);
-        if(!isPassowrdCorrect) return res.status(400).json({ message: 'Password Incorerct.'})
+        if(!isPassowrdCorrect) return res.status(401).json({ message: 'Password Incorerct.'})
 
         const token = jwt.sign({ email: existingUser.email, id: existingUser._id }, process.env.secretToken, { expiresIn: "7d"});
         res.status(200).json({ result: existingUser, token });
@@ -29,9 +29,9 @@ export const signup = async (req, res) => {
     if (!email || !password || !firstname || !lastname) return res.status(400).json({ message: 'Fill the required fields.'});
     try {
         const existingUser = await User.findOne({ email });
-        if(existingUser) return res.status(404).json({ message: 'User already exists.'});
+        if(existingUser) return res.status(406).json({ message: 'User already exists.'});
 
-        if(password !== confirmPassword ) return res.status(404).json({ message: 'Passowrds Incorerct. '});
+        if(password !== confirmPassword ) return res.status(401).json({ message: 'Passowrds Incorerct. '});
 
         const hashPassowrd = await bcrypt.hash(password, 12);
 
@@ -46,7 +46,7 @@ export const signup = async (req, res) => {
 
 export const updateuser = async (req, res) => {
     const { id: _id } = req.params;
-    if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(400).send('Invalid User');
+    if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('Invalid User');
 
     const { email, oldPassword, newPassword, firstname, lastname } = req.body;
     if (!email || !oldPassword || !firstname || !lastname) return res.status(400).json({ message: 'Fill the required fields.'});
@@ -57,7 +57,7 @@ export const updateuser = async (req, res) => {
         else {
             const existEmail = await User.findOne({ email });
             const oldEmail = existingUser.email;
-            if(existEmail && email !== oldEmail ) return res.status(404).json({ message: 'Email already exists.'});
+            if(existEmail && email !== oldEmail ) return res.status(406).json({ message: 'Email already exists.'});
             else {
                 const isPassowrdCorrect = await bcrypt.compare(oldPassword, existingUser.password);
                 if(!isPassowrdCorrect) return res.status(400).json({ message: 'invalid credentials.'});
