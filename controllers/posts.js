@@ -13,9 +13,11 @@ export const getPosts = async (req,res) => {
 
 export const createPost = async (req,res) => {
     const post = req.body;
+    if (!post.title || !post.message) return res.status(400).json({ message: 'Fill the required fields.'});
+
     const dateRn = new Date().toISOString();
-    //console.log(dateRn);
-    const newPost = new PostMessage({...post, creator: req.userId, creatAt: dateRn});
+    console.log(dateRn);
+    const newPost = new PostMessage({...post, creator: req.userId, createdAt: dateRn});
 
     try {
         await newPost.save();
@@ -27,6 +29,8 @@ export const createPost = async (req,res) => {
 export const updatePost = async (req,res) => {
     const { id: _id } = req.params;
     const post = req.body;
+    if (!post.title || !post.message) return res.status(400).json({ message: 'Fill the required fields.'});
+
     if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No Post with that id');
 
     const updatedPost = await PostMessage.findByIdAndUpdate(_id, { ...post, _id }, { new: true });

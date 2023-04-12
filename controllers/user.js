@@ -8,28 +8,30 @@ dotenv.config();
 export const signin = async (req, res) => {
     
     const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: 'Fill the required fields.'});
     try {
         const existingUser = await User.findOne({ email });
-        if(!existingUser) return res.status(404).json({ message: 'user does not exists.'});
+        if(!existingUser) return res.status(404).json({ message: 'User does not exists.'});
         
         const isPassowrdCorrect = await bcrypt.compare(password, existingUser.password);
-        if(!isPassowrdCorrect) return res.status(400).json({ message: 'invalid credentials.'})
+        if(!isPassowrdCorrect) return res.status(400).json({ message: 'Password Incorerct.'})
 
         const token = jwt.sign({ email: existingUser.email, id: existingUser._id }, process.env.secretToken, { expiresIn: "7d"});
         res.status(200).json({ result: existingUser, token });
     } catch (error) {
-        res.status(500).json({ message: 'something went wrong in server'});
+        res.status(500).json({ message: 'Something went wrong in server'});
     }
 }
 
 export const signup = async (req, res) => {
 
     const { email, password, confirmPassword, firstname, lastname } = req.body;
+    if (!email || !password || !firstname || !lastname) return res.status(400).json({ message: 'Fill the required fields.'});
     try {
         const existingUser = await User.findOne({ email });
-        if(existingUser) return res.status(404).json({ message: 'user already exists.'});
+        if(existingUser) return res.status(404).json({ message: 'User already exists.'});
 
-        if(password !== confirmPassword ) return res.status(404).json({ message: 'passowrds dont match '});
+        if(password !== confirmPassword ) return res.status(404).json({ message: 'Passowrds Incorerct. '});
 
         const hashPassowrd = await bcrypt.hash(password, 12);
 
@@ -38,15 +40,17 @@ export const signup = async (req, res) => {
         const token = jwt.sign({ email: result.email, id: result._id }, process.env.secretToken, { expiresIn: "7d"});
         res.status(200).json({ result: result, token });
     } catch (error) {
-        res.status(500).json({ message: 'something went wrong in server'});
+        res.status(500).json({ message: 'Something went wrong in server'});
     }
 }
 
 export const updateuser = async (req, res) => {
     const { id: _id } = req.params;
-    if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No User with that id');
+    if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(400).send('Invalid User');
 
     const { email, oldPassword, newPassword, firstname, lastname } = req.body;
+    if (!email || !oldPassword || !firstname || !lastname) return res.status(400).json({ message: 'Fill the required fields.'});
+
     try {
         const existingUser = await User.findOne({ _id });
         if(!existingUser) return res.status(404).json({ message: 'user do not exists.'});
