@@ -1,6 +1,18 @@
 import mongoose from "mongoose";
 import PostMessage from "../models/postMessage.js";
 
+export const getPost = async (req,res) => {
+    const { id } = req.params;
+    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No Post with that id');
+    try{
+        const post = await PostMessage.findById(id);
+        //console.log(post);
+        res.status(200).json(post);
+    } catch (error){
+        res.status(404).json({ message: error });
+    }
+}
+
 export const getPosts = async (req,res) => {
     try{
         const postMessages = await PostMessage.find();
